@@ -88,14 +88,6 @@ Confusion Matrix:
 
 ---
 
-## **Next Steps**
-
-* Switch to **Kaggle train.csv** and keep **Sex** as a feature.
-* Use a proper **Pipeline + ColumnTransformer** (imputers, scaler, one-hot) to avoid leakage.
-* Try other models (Logistic Regression, Random Forest, XGBoost) and metrics (F1, ROC AUC).
-
----
-
 ## **License**
 
-MIT (or anything you prefer).
+MIT
