@@ -18,27 +18,26 @@ data.info()
 
 # Preprocess the data (drop columns that won't be used and handle missing values)
 def preprocess_data(df):
-    # Drop columns we don't use (od razu usuń Embarked)
+    # Drop columns we don't use
     df = df.drop(columns=["PassengerId", "Name", "Ticket", "Cabin", "Embarked"])
 
-    # Uzupełnij wiek medianą w ramach Pclass
+    # Fill missing values in 'Age' based on Pclass median
     fill_missing_ages(df)
 
-    # Uzupełnij brakujące Fare (jest 1 NaN)
+    # Fill missing values in 'Fare' with median
     df["Fare"] = df["Fare"].fillna(df["Fare"].median())
 
-    # Mapowanie płci
+    # Map 'Pclass' to categorical values
     df["Sex"] = df["Sex"].map({"male": 1, "female": 0}).astype(int)
 
-    # Feature engineering (Uwaga: poprawna nazwa kolumny to 'SibSp')
+    # Feature engineering
     df["FamilySize"] = df["SibSp"] + df["Parch"]
     df["IsAlone"] = np.where(df["FamilySize"] == 0, 1, 0)
 
-    # Dyskretyzacja
+    # Binning 'Fare' and 'Age'
     df["FareBin"] = pd.qcut(df["Fare"], 4, labels=False)
     df["AgeBin"] = pd.cut(df["Age"], bins=[0, 12, 20, 40, 60, np.inf], labels=False)
 
-    # (opcjonalnie) rzutuj na int – będzie czyściej dla modeli
     df["FareBin"] = df["FareBin"].astype(int)
     df["AgeBin"] = df["AgeBin"].astype(int)
 
@@ -62,7 +61,7 @@ def fill_missing_ages(df):
 data = preprocess_data(data)
 
 # Dropping survived column to learn our model
-X = data.drop(columns=["Survived"])
+X = data.drop(columns=["Survived", "Sex"])
 
 # Target values
 y = data["Survived"]
@@ -109,3 +108,15 @@ accuracy, matrix = evaluate_model(best_model, X_test, y_test)
 print(f"Best Model Accuracy: {accuracy*100:.2f}%")
 print("Confusion Matrix:")
 print(matrix)
+
+def plot_model(matrix):
+    plt.figure(figsize=(8,6))
+    sns.heatmap(matrix, annot=True, fmt="d", cmap="Blues", cbar=False,
+                xticklabels=["Not Survived", "Survived"],
+                yticklabels=["Not Survived", "Survived"])
+    plt.xlabel("Predicted")
+    plt.ylabel("Actual")
+    plt.title("Confusion Matrix")
+    plt.show()
+
+plot_model(matrix)
