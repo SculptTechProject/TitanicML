@@ -18,21 +18,29 @@ data.info()
 
 # Preprocess the data (drop columns that won't be used and handle missing values)
 def preprocess_data(df):
-    df = df.drop(columns=["PassengerId", "Name", "Ticket", "Cabin"], inplace=True)
-    df["Embarked"].fillna("S", inplace=True)
-    df.drop(columns="Embarked", inplace=True)
+    # Drop columns we don't use (od razu usuń Embarked)
+    df = df.drop(columns=["PassengerId", "Name", "Ticket", "Cabin", "Embarked"])
 
-    # Fill missing ages based on Pclass median
+    # Uzupełnij wiek medianą w ramach Pclass
     fill_missing_ages(df)
 
-    # Convert gender to numerical values
-    df["Sex"] = df["Sex"].map({"male": 1, "female": 0})
+    # Uzupełnij brakujące Fare (jest 1 NaN)
+    df["Fare"] = df["Fare"].fillna(df["Fare"].median())
 
-    # Feature Engineering
-    df["FamilySize"] = df["SibSP"] + df["Parch"]
+    # Mapowanie płci
+    df["Sex"] = df["Sex"].map({"male": 1, "female": 0}).astype(int)
+
+    # Feature engineering (Uwaga: poprawna nazwa kolumny to 'SibSp')
+    df["FamilySize"] = df["SibSp"] + df["Parch"]
     df["IsAlone"] = np.where(df["FamilySize"] == 0, 1, 0)
+
+    # Dyskretyzacja
     df["FareBin"] = pd.qcut(df["Fare"], 4, labels=False)
     df["AgeBin"] = pd.cut(df["Age"], bins=[0, 12, 20, 40, 60, np.inf], labels=False)
+
+    # (opcjonalnie) rzutuj na int – będzie czyściej dla modeli
+    df["FareBin"] = df["FareBin"].astype(int)
+    df["AgeBin"] = df["AgeBin"].astype(int)
 
     return df
 
@@ -98,6 +106,6 @@ def evaluate_model(model, X_test, y_test):
 
 accuracy, matrix = evaluate_model(best_model, X_test, y_test)
 
-print(f"Best Model Accuracy: {accuracy_score*100:.2f}%")
+print(f"Best Model Accuracy: {accuracy*100:.2f}%")
 print("Confusion Matrix:")
 print(matrix)
